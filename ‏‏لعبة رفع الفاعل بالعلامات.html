@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة رفع الفاعل بالعلامات الفرعية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f0e68c, #add8e6);
+            font-family: 'Cairo', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 800px;
+        }
+
+        .game-screen {
+            display: none;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        .game-screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        h1 {
+            font-size: 42px;
+            color: #4b0082;
+            text-shadow: 2px 2px #ffc107;
+        }
+
+        h3 {
+            font-size: 24px;
+            color: #6a0dad;
+            margin-top: -10px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 15px 30px;
+            font-size: 24px;
+            font-family: 'Cairo', sans-serif;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: right;
+            direction: rtl;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 20px;
+            margin-bottom: 5px;
+            color: #4b0082;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            font-size: 18px;
+            border-radius: 8px;
+            border: 2px solid #ccc;
+            direction: rtl;
+        }
+
+        #question-text {
+            font-size: 40px;
+            color: #000;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .highlight {
+            background-color: #ffc107;
+            padding: 2px 5px;
+            border-radius: 5px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .option-button {
+            font-size: 36px;
+            color: #0000ff;
+            background-color: #f0f8ff;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #0000ff;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .option-button:hover {
+            transform: scale(1.05);
+            background-color: #e0f0ff;
+        }
+
+        .option-button.correct {
+            background-color: #28a745;
+            color: #fff;
+            border-color: #28a745;
+        }
+
+        .option-button.wrong {
+            background-color: #dc3545;
+            color: #fff;
+            border-color: #dc3545;
+        }
+
+        #feedback {
+            font-size: 28px;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .navigation-buttons {
+            margin-top: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #timer-container {
+            font-size: 32px;
+            font-weight: bold;
+            color: #dc3545;
+            margin-bottom: 20px;
+        }
+        
+        /* Progress Bar CSS */
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            height: 20px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: #4CAF50;
+            transition: width 0.4s ease-in-out;
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 40px; }
+            h3 { font-size: 20px; }
+            .options-grid { grid-template-columns: 1fr; }
+            #question-text { font-size: 32px; }
+            .option-button { font-size: 28px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+
+        <div id="welcome-screen" class="game-screen active">
+            <h1>لعبة رفع الفاعل بالعلامات الفرعية</h1>
+            <h3>إعداد المعلم / غزي بن مساعد الغزي</h3>
+            <img src="https://via.placeholder.com/400x300.png?text=صورة+ترحيبية+مناسبة+للأطفال" alt="صورة ترحيبية">
+            <div class="input-group">
+                <label for="playerNameInput">الاسم:</label>
+                <input type="text" id="playerNameInput" placeholder="أدخل اسمك هنا">
+            </div>
+            <div class="input-group">
+                <label for="playerClassInput">الصف:</label>
+                <input type="text" id="playerClassInput" placeholder="أدخل صفك هنا">
+            </div>
+            <button id="startButton">ابدأ اللعبة</button>
+        </div>
+
+        <div id="quiz-screen" class="game-screen">
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+            <h2 id="question-text"></h2>
+            <div id="timer-container" class="hidden">
+                <span id="timer"></span>
+            </div>
+            <div id="options-container" class="options-grid"></div>
+            <p id="feedback"></p>
+            <div class="navigation-buttons hidden">
+                <button id="next-button">السؤال التالي</button>
+            </div>
+        </div>
+
+        <div id="final-screen" class="game-screen">
+            <h2>لقد انتهت اللعبة!</h2>
+            <p>
+                <span id="congratulations-message"></span>
+            </p>
+            <p>لقد حصلت على <span id="final-score">0</span> نقطة من أصل <span id="total-questions">0</span>.</p>
+            <button id="restartButton">ابدأ من جديد</button>
+        </div>
+
+    </div>
+
+    <script>
+        // Data for the quiz
+        const questions = [
+            // Stage 1
+            {
+                question: "حدد الفاعل، نوعه، وعلامة رفعه في الجملة: 'يهتم <span class='highlight'>العاملون</span> بنظافة المصنع.'",
+                options: ["العاملون - جمع مذكر سالم - الواو", "العاملون - جمع تكسير - الضمة", "المصنع - مفرد - الضمة", "الزرع - مفرد - الضمة"],
+                answer: "العاملون - جمع مذكر سالم - الواو",
+                stage: 1
+            },
+            {
+                question: "حدد الفاعل، نوعه، وعلامة رفعه في الجملة: 'يُحافظ <span class='highlight'>أبوك</span> على البيئة.'",
+                options: ["أبوك - مثنى - الألف", "أبوك - اسم من الأسماء الخمسة - الواو", "البيئة - مفرد - الضمة", "أبوك - مفرد - الضمة"],
+                answer: "أبوك - اسم من الأسماء الخمسة - الواو",
+                stage: 1
+            },
+            {
+                question: "حدد الفاعل، نوعه، وعلامة رفعه في الجملة: 'تُزود <span class='highlight'>الرئتان</span> الجسم بالأكسجين.'",
+                options: ["الرئتان - مفرد - الضمة", "الجسم - مفرد - الضمة", "الرئتان - مثنى - الألف", "الأكسجين - مفرد - الضمة"],
+                answer: "الرئتان - مثنى - الألف",
+                stage: 1
+            },
+            {
+                question: "حدد الفاعل، نوعه، وعلامة رفعه في الجملة: 'دعــا <span class='highlight'>الإسلام</span> إلى الاعتدال والوسطية.'",
+                options: ["الإسلام - مفرد - الضمة", "الاعتدال - مثنى - الألف", "الوسطية - مفرد - الضمة", "الإسلام - مثنى - الألف"],
+                answer: "الإسلام - مفرد - الضمة",
+                stage: 1
+            },
+            // Stage 2
+            {
+                question: "حوّل الفاعل في جملة 'يَجمع الفلاحُ الثمار.' إلى جمع مذكر سالم.",
+                options: ["يَجمع الفلاحون الثمار.", "يَجمع الفلاحان الثمار.", "يَجمع الفلاحات الثمار.", "يَجمع الفلاح الثمار."],
+                answer: "يَجمع الفلاحون الثمار.",
+                stage: 2
+            },
+            {
+                question: "حوّل الفاعل في جملة 'تَقرأ الطبيبةُ عن أخطار الغازات.' إلى مثنى.",
+                options: ["تقرأ الطبيبات عن أخطار الغازات.", "تقرأ الطبيبتان عن أخطار الغازات.", "يقرأ الطبيبان عن أخطار الغازات.", "تقرأ الطبيبة عن أخطار الغازات."],
+                answer: "تقرأ الطبيبتان عن أخطار الغازات.",
+                stage: 2
+            },
+            {
+                question: "حوّل الفاعل في جملة 'يُشارك فيصل في حملة ترشيد.' إلى اسم من الأسماء الخمسة.",
+                options: ["يُشارك أخاك في حملة ترشيد.", "يُشارك أخوك في حملة ترشيد.", "يُشارك أبيك في حملة ترشيد.", "يُشارك أباه في حملة ترشيد."],
+                answer: "يُشارك أخوك في حملة ترشيد.",
+                stage: 2
+            },
+            {
+                question: "حوّل الفاعل في جملة 'يستمتع الزائر بمشاهدة الحديقة.' إلى جمع مذكر سالم.",
+                options: ["يستمتع الزائران بمشاهدة الحديقة.", " يستمتع الزائرتين بمشاهدة الحديقة.", " يستمتع الزوار بمشاهدة الحديقة.", " يستمتع الزائرون بمشاهدة الحديقة."],
+                answer: " يستمتع الزائرون بمشاهدة الحديقة.",
+                stage: 2
+            },
+            // Stage 3
+            {
+                question: "ما علامة رفع الفاعل في 'يُسهم <span class='highlight'>العلماءُ</span> في تقدم المجتمع.'؟",
+                options: ["الواو", "الضمة", "الألف", "الياء"],
+                answer: "الضمة",
+                stage: 3,
+                timeLimit: 30
+            },
+            {
+                question: "ما نوع الفاعل في 'يُسهم <span class='highlight'>العلماءُ</span> في تقدم المجتمع.'؟",
+                options: ["جمع تكسير", "جمع مذكر سالم", "مثنى", "اسم من الأسماء الخمسة"],
+                answer: "جمع تكسير",
+                stage: 3,
+                timeLimit: 30
+            },
+            {
+                question: "ما علامة رفع الفاعل في 'يتعاون <span class='highlight'>أخوك</span> مع المركز.'؟",
+                options: ["الضمة", "الألف", "الواو", "الياء"],
+                answer: "الواو",
+                stage: 3,
+                timeLimit: 30
+            },
+            {
+                question: "ما نوع الفاعل في 'يتعاون <span class='highlight'>المزارعون</span> مع المهندسين.'؟",
+                options: ["مثنى", "جمع تكسير", "جمع مذكر سالم", "مفرد"],
+                answer: "جمع مذكر سالم",
+                stage: 3,
+                timeLimit: 30
+            },
+            // Stage 4
+            {
+                question: "اختر الفاعل المناسب: 'يَنطلق <span class='highlight'>...........</span> في مسابقة الجري.'",
+                options: ["اللاعبين", "اللاعبة", "اللاعبون", "اللاعبتين"],
+                answer: "اللاعبون",
+                stage: 4,
+                timeLimit: 20
+            },
+            {
+                question: "اختر الفاعل المناسب: 'يَحرص <span class='highlight'>...........</span> على الحضور مبكرًا.'",
+                options: ["الطالبان", "الطالبين", "الطالبة", "الطالبتين"],
+                answer: "الطالبان",
+                stage: 4,
+                timeLimit: 20
+            },
+            {
+                question: "اختر الفاعل المناسب: 'يَرتدي <span class='highlight'>...........</span> الملابس الثقيلة في الشتاء.'",
+                options: ["الناسُ", "الناسون", "الناسَ", "الناسِ"],
+                answer: "الناسُ",
+                stage: 4,
+                timeLimit: 20
+            },
+            {
+                question: "اختر الفاعل المناسب: 'يَقرأ <span class='highlight'>...........</span> كثيرًا عن تاريخ المملكة.'",
+                options: ["أخاك", "أخيك", "أبوك", "أبيك"],
+                answer: "أبوك",
+                stage: 4,
+                timeLimit: 20
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timer;
+        let timeLeft;
+        let shuffledQuestions = [];
+        let playerName = '';
+
+        // تعريف جميع العناصر هنا
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const finalScreen = document.getElementById('final-screen');
+        const startButton = document.getElementById('startButton');
+        const nextButton = document.getElementById('next-button');
+        const restartButton = document.getElementById('restartButton');
+        const playerNameInput = document.getElementById('playerNameInput');
+        const playerClassInput = document.getElementById('playerClassInput');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const feedback = document.getElementById('feedback');
+        const timerContainer = document.getElementById('timer-container');
+        const timerSpan = document.getElementById('timer');
+        const finalScoreSpan = document.getElementById('final-score');
+        const totalQuestionsSpan = document.getElementById('total-questions');
+        const progressBar = document.getElementById('progressBar');
+        const congratulationsMessage = document.getElementById('congratulations-message');
+
+        // Event listeners
+        startButton.addEventListener('click', () => {
+            playerName = playerNameInput.value.trim();
+            if (playerName === '') {
+                alert('الرجاء إدخال اسمك أولاً!');
+            } else {
+                startGame();
+            }
+        });
+        nextButton.addEventListener('click', nextQuestion);
+        restartButton.addEventListener('click', restartGame);
+
+        function startGame() {
+            welcomeScreen.classList.remove('active');
+            quizScreen.classList.add('active');
+            currentQuestionIndex = 0;
+            score = 0;
+            shuffledQuestions = questions.sort(() => Math.random() - 0.5);
+            updateProgressBar();
+            showQuestion();
+        }
+
+        function showQuestion() {
+            resetState();
+            const currentQuestion = shuffledQuestions[currentQuestionIndex];
+            questionText.innerHTML = currentQuestion.question;
+
+            // إظهار المؤقت فقط إذا كان رقم السؤال أكبر من 9
+            if (currentQuestionIndex >= 10) {
+                timerContainer.classList.remove('hidden');
+                timeLeft = 30; // 30 ثانية لكل سؤال بعد السؤال العاشر
+                timerSpan.textContent = timeLeft;
+                timer = setInterval(countdown, 1000);
+            }
+
+            const shuffledOptions = currentQuestion.options.sort(() => Math.random() - 0.5);
+            shuffledOptions.forEach(option => {
+                const button = document.createElement('button');
+                button.innerHTML = option;
+                button.classList.add('option-button');
+                optionsContainer.appendChild(button);
+                button.dataset.correct = option === currentQuestion.answer;
+                button.addEventListener('click', selectOption);
+            });
+        }
+
+        function resetState() {
+            clearInterval(timer);
+            timerContainer.classList.add('hidden');
+            feedback.textContent = '';
+            nextButton.parentElement.classList.add('hidden');
+            while (optionsContainer.firstChild) {
+                optionsContainer.removeChild(optionsContainer.firstChild);
+            }
+        }
+
+        function selectOption(e) {
+            clearInterval(timer);
+            const selectedButton = e.target;
+            const isCorrect = selectedButton.dataset.correct === 'true';
+
+            if (isCorrect) {
+                score++;
+                feedback.textContent = 'إجابة صحيحة! 🎉 أحسنت.';
+                selectedButton.classList.add('correct');
+            } else {
+                feedback.textContent = 'إجابة خاطئة. حاول مرة أخرى.';
+                selectedButton.classList.add('wrong');
+                Array.from(optionsContainer.children).forEach(button => {
+                    if (button.dataset.correct === 'true') {
+                        button.classList.add('correct');
+                    }
+                });
+            }
+
+            Array.from(optionsContainer.children).forEach(button => {
+                button.disabled = true;
+            });
+
+            nextButton.parentElement.classList.remove('hidden');
+        }
+
+        function countdown() {
+            timeLeft--;
+            timerSpan.textContent = timeLeft;
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                feedback.textContent = 'انتهى الوقت! ⌛';
+                Array.from(optionsContainer.children).forEach(button => {
+                    button.disabled = true;
+                    if (button.dataset.correct === 'true') {
+                        button.classList.add('correct');
+                    }
+                });
+                nextButton.parentElement.classList.remove('hidden');
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < shuffledQuestions.length) {
+                updateProgressBar();
+                showQuestion();
+            } else {
+                updateProgressBar();
+                showFinalScreen();
+            }
+        }
+
+        function showFinalScreen() {
+            quizScreen.classList.remove('active');
+            finalScreen.classList.add('active');
+            finalScoreSpan.textContent = score;
+            totalQuestionsSpan.textContent = shuffledQuestions.length;
+            congratulationsMessage.textContent = `مبروك لقد أتممت اللعبة بشكل رائع يا: ${playerName}`;
+        }
+
+        function restartGame() {
+            finalScreen.classList.remove('active');
+            welcomeScreen.classList.add('active');
+            currentQuestionIndex = 0;
+            score = 0;
+            progressBar.style.width = '0%';
+            playerNameInput.value = ''; // Clear the name field
+            playerClassInput.value = ''; // Clear the class field
+        }
+
+        function updateProgressBar() {
+            const progress = ((currentQuestionIndex) / shuffledQuestions.length) * 100;
+            progressBar.style.width = progress + '%';
+        }
+    </script>
+</body>
+</html>
